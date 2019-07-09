@@ -1,0 +1,8 @@
+2019 7 8 3
+Banana 105 1
+Cliff_bar 280 20
+Burger 500 25
+
+2019 7 7 1
+Protein_shake 800 40
+
