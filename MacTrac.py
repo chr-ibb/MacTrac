@@ -4,6 +4,13 @@ how to use enumerate to for loop through a list and have the item in the list AN
 how to use deque, a container that pops from the begining better than lists
 opening, reading, writing files
 dictionaries and for loops
+
+TODO
+make the ui look nicer
+maybe move all the printing outside of the classes
+maybe eventually use Clui for this
+make it so you can view by week or month, to see how well you're doing over time
+like show averages, or even graphs
 """
 
 
