@@ -21,6 +21,11 @@ Learned:
 
 -dictionaries and for loops
 
+-lib.datetime
+	-printing different dates
+	-adding or subtracting days using datetime.timedelta(n)
+	-checking time difference between dates, datetime.timedelta(n).days
+
 TODO
 make the ui look nicer
 maybe move all the printing outside of the classes
@@ -42,25 +47,26 @@ title += " # # # #                 #                   \n"
 title += " # # # #    ##    ###    #   # ###  ##    ###\n"
 title += "#   #   #  #  #  #       #   ##    #  #  #   \n"
 title += "#   #   #  #  #  #       #   #     #  #  #   \n"
-title += "#   #   #   ## #  ###    #   #      ## #  ###"
+title += "#   #   #   ## #  ###    #   #      ## #  ###\n"
 
 def MacTrac():
 	clear_screen()
 	print(title)
-	print("Loading saved macros...")
+	print("Loading saved macros...\n")
 	now = time.clock()
 	days = load_macros()
 	passed = time.clock() - now
-	print("Finished loading! Loading took {0} seconds".format(passed))
-	wait_sec(3)
+	print("Finished loading! Loading took {0} seconds\n".format(passed))
+	input("press enter ")
 	
 	while True:
 		clear_screen()
+		print(title)
 		choice = input("(A)dd Macro, (V)iew Macros, or (E)xit? (a/v/e): ")
 		if choice == 'a' or choice == 'A':
-			add_macro(days)
+			add_macro(days, pick_day())
 		elif choice == 'v' or choice == 'V':
-			view_macro(days)
+			view_macro(days, pick_day())
 		elif choice == 'e' or choice == 'E':
 			print("Saving macros...")
 			save_macros(days)
@@ -70,17 +76,17 @@ def MacTrac():
 			print("Please enter the letters (a) or (v) or (e)")
 			wait_sec(1)
 
-def add_macro(days):
-	date = pick_day()
+def add_macro(days, date):
 	if date not in days:
 		days[date] = Day(date)
 	days[date].add_food()
 
 
-def view_macro(days):
-	date = pick_day()
+def view_macro(days, date):
 	clear_screen()
+	print(title)
 	if date in days:
+		print('     ', date)
 		day = days[date]
 		for item in day.food:
 			print(item.name + ':', item.calories, "calories,", str(item.protein) + 'g', "protein")
@@ -95,6 +101,7 @@ def pick_day():
 	today = datetime.date.today()
 	while True:
 		clear_screen()
+		print(title)
 		print("(T)oday, (Y)esterday, (O)ther")
 		day = input("Which day? (t/y/o): ")
 		if day == 't' or day == 'T':
