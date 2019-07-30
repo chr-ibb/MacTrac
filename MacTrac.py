@@ -1,9 +1,21 @@
 """
 Learned:
-how to use enumerate to for loop through a list and have the item in the list AND the index
-how to use deque, a container that pops from the begining better than lists
-opening, reading, writing files
-dictionaries and for loops
+-used enumerate to for-loop through a list and have the item in the list AND the index
+	-used enumerate to print out a list of food items with corresponding index so that user can choose by index
+
+-used deque, a container that pops from the begining better than lists
+	-used deque to store all the data from a txt file, popped from the left side as i looped through the deque
+	-in later versions, saving to a txt file was replaced with use of lib.pickle
+
+-opening, reading, writing files
+	-used to save/load macro data to/from a .txt file
+	-used to save/load macro data to/from a binary .pickle file
+
+-used lib.pickle to serealize and store macro data, instead of saving to a txt file like before
+
+-used "with as" statement for opening and closing a file
+
+-dictionaries and for loops
 
 TODO
 make the ui look nicer
@@ -18,11 +30,19 @@ import datetime
 import time
 import os
 from collections import deque
+import pickle
 
+title = ''
+title += "  #   #               #######                \n"
+title += " # # # #                 #                   \n"
+title += " # # # #    ##    ###    #   # ###  ##    ###\n"
+title += "#   #   #  #  #  #       #   ##    #  #  #   \n"
+title += "#   #   #  #  #  #       #   #     #  #  #   \n"
+title += "#   #   #   ## #  ###    #   #      ## #  ###"
 
 def MacTrac():
 	clear_screen()
-	print("MacTrac")
+	print(title)
 	print("Loading saved macros...")
 	days = load_macros()
 	print("Finished loading!")
