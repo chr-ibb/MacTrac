@@ -10,6 +10,10 @@ Learned:
 -opening, reading, writing files
 	-used to save/load macro data to/from a .txt file
 	-used to save/load macro data to/from a binary .pickle file
+	-learned a bit about "race conditions" and how to avoid them. basically I dont want to check if a file exists, and then either
+		create the file or open it, because in between those two actions the file could be created or deleted. 
+
+-timing runtime of different parts of program using time.clock(), which on windows is more accurate than time.time()
 
 -used lib.pickle to serealize and store macro data, instead of saving to a txt file like before
 
@@ -44,9 +48,11 @@ def MacTrac():
 	clear_screen()
 	print(title)
 	print("Loading saved macros...")
+	now = time.clock()
 	days = load_macros()
-	print("Finished loading!")
-	wait_sec(1)
+	passed = time.clock() - now
+	print("Finished loading! Loading took {0} seconds".format(passed))
+	wait_sec(3)
 	
 	while True:
 		clear_screen()
@@ -105,46 +111,60 @@ def pick_day():
 
 
 def load_macros():
-	days = {}
 	try:
-		file = open("MacFile.txt", "r")
+		with open('MacFile.pickle', 'rb') as f:
+			data = pickle.load(f)
+		return data
 	except FileNotFoundError:
-		return days
-	lines = deque(file.readlines())
-	while lines:
-		# get day info, make Day
-		day_info = lines.popleft().split()
-		day_year = int(day_info[0])
-		day_month = int(day_info[1])
-		day_day = int(day_info[2])
-		day_items = int(day_info[3])
-		day = Day(datetime.date(day_year, day_month, day_day))
-
-		for _ in range(day_items):
-			food_info = lines.popleft().split()
-			food_name = food_info[0]
-			food_calories = int(food_info[1])
-			food_protein = int(food_info[2])
-			day.food.append(Food(food_name, food_calories, food_protein))
-			day.calories += food_calories
-			day.protein += food_protein
-
-		days[day.date] = day
-		lines.popleft() #empty line
-
-	file.close()
-	return days
+		return{}
 
 
-def save_macros(days):
-	file = open("MacFile.txt", "w")
-	for day in days.values():
-		file.write(str(day.date.year) + ' ' + str(day.date.month) + ' ' + str(day.date.day) + ' ' + str(len(day.food)) + '\n')
-		for item in day.food:
-			file.write(item.name + ' ' + str(item.calories) + ' ' + str(item.protein) + '\n')
-		file.write('\n')
+def save_macros(data):
+	with open ('MacFile.pickle', 'wb') as f:
+		pickle.dump(data, f)
 
-	file.close()
+
+# def load_macros():
+# 	days = {}
+# 	try:
+# 		file = open("MacFile.txt", "r")
+# 	except FileNotFoundError:
+# 		return days
+# 	lines = deque(file.readlines())
+# 	while lines:
+# 		# get day info, make Day
+# 		day_info = lines.popleft().split()
+# 		day_year = int(day_info[0])
+# 		day_month = int(day_info[1])
+# 		day_day = int(day_info[2])
+# 		day_items = int(day_info[3])
+# 		day = Day(datetime.date(day_year, day_month, day_day))
+
+# 		for _ in range(day_items):
+# 			food_info = lines.popleft().split()
+# 			food_name = food_info[0]
+# 			food_calories = int(food_info[1])
+# 			food_protein = int(food_info[2])
+# 			day.food.append(Food(food_name, food_calories, food_protein))
+# 			day.calories += food_calories
+# 			day.protein += food_protein
+
+# 		days[day.date] = day
+# 		lines.popleft() #empty line
+
+# 	file.close()
+# 	return days
+
+
+# def save_macros(days):
+# 	file = open("MacFile.txt", "w")
+# 	for day in days.values():
+# 		file.write(str(day.date.year) + ' ' + str(day.date.month) + ' ' + str(day.date.day) + ' ' + str(len(day.food)) + '\n')
+# 		for item in day.food:
+# 			file.write(item.name + ' ' + str(item.calories) + ' ' + str(item.protein) + '\n')
+# 		file.write('\n')
+
+# 	file.close()
 
 
 class Day:
