@@ -32,6 +32,25 @@ maybe move all the printing outside of the classes
 maybe eventually use Clui for this
 make it so you can view by week or month, to see how well you're doing over time
 like show averages, or even graphs
+
+
+NEW DESIGN IDEA:
+you start up mactrac, 
+it opens up and shows TODAY (so none if theres no entries yet)
+you can either:
+	use WASD to cycle through days,
+	enter a new item onto the day that is showing currently
+	or enter a day you want to see manually
+
+It'll say "today" and the date if it's showing today
+It'll say "yesterday" and the date if its showing yesterday
+otherwise it just shows the date
+
+to Solve:
+	how to get the days in order.... as of now they are in an unordered dictionary...
+	do I use orderedDict? do I just loop through until i find the next day in that direction? 
+	do i just look through all the days until i find the previous one, and if i dont find it, then just look
+	for the date previous that one? thats such a huge waste of time though...
 """
 
 
@@ -66,7 +85,7 @@ def MacTrac():
 		if choice == 'a' or choice == 'A':
 			add_macro(days, pick_day())
 		elif choice == 'v' or choice == 'V':
-			view_macro(days, pick_day())
+			view_macro(days)
 		elif choice == 'e' or choice == 'E':
 			print("Saving macros...")
 			save_macros(days)
@@ -82,7 +101,7 @@ def add_macro(days, date):
 	days[date].add_food()
 
 
-def view_macro(days, date):
+def view_macro(days):
 	clear_screen()
 	print(title)
 	if date in days:
