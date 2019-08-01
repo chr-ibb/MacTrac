@@ -1,72 +1,27 @@
 """
-Learned:
+Learned/Developed:
 -used enumerate to for-loop through a list and have the item in the list AND the index
 	-used enumerate to print out a list of food items with corresponding index so that user can choose by index
-
 -used deque, a container that pops from the begining better than lists
 	-used deque to store all the data from a txt file, popped from the left side as i looped through the deque
 	-in later versions, saving to a txt file was replaced with use of lib.pickle
-
 -opening, reading, writing files
 	-used to save/load macro data to/from a .txt file
 	-used to save/load macro data to/from a binary .pickle file
 	-learned a bit about "race conditions" and how to avoid them. basically I dont want to check if a file exists, and then either
 		create the file or open it, because in between those two actions the file could be created or deleted. 
-
 -timing runtime of different parts of program using time.clock(), which on windows is more accurate than time.time()
-
 -used lib.pickle to serealize and store macro data, instead of saving to a txt file like before
-
 -used "with as" statement for opening and closing a file
-
 -dictionaries and for loops
-
 -lib.datetime
 	-printing different dates
 	-adding or subtracting days using datetime.timedelta(n)
 	-checking time difference between dates, datetime.timedelta(n).days
-
 -to sort lists, and how to use a sorted list in conjunction with a dictionary
-
 -to use continue and break in a loop
-
--how to catch multiple errors in one except line, using a tuple and "as e" after
-
-
-TODO
-make the ui look nicer
-maybe move all the printing outside of the classes
-maybe eventually use Clui for this
-make it so you can view by week or month, to see how well you're doing over time
-like show averages, or even graphs
-
-
-NEW DESIGN IDEA:
-you start up mactrac, 
-it opens up and shows TODAY (so none if theres no entries yet)
-you can either:
-	use WASD to cycle through days,
-	enter a new item onto the day that is showing currently
-	or enter a day you want to see manually
-
-It'll say "today" and the date if it's showing today
-It'll say "yesterday" and the date if its showing yesterday
-otherwise it just shows the date
-
-to Solve:
-	how to get the days in order.... as of now they are in an unordered dictionary...
-	do I use orderedDict? do I just loop through until i find the next day in that direction? 
-	do i just look through all the days until i find the previous one, and if i dont find it, then just look
-	for the date previous that one? thats such a huge waste of time though...
-	I guess python sort of says to just try it and see if it's actually too slow..
-	nah because I'm literally gonna have to check every single item each time i move to a new day
-	ima use an ordered dict
-	scatch that. I'll use a regular dictionary like I already am, but then I'll have an additional list of just the
-	dates, which can be sorted. sick. 
-
-todo:
-	redo the remove method, make it just reprint the day but with the element number next to each item
-	get rid of the ordreded list if you dont need it. right now you aren't using it
+-catching multiple errors in one except line, using a tuple and "as e" after
+-creating and using new data types
 """
 
 
@@ -74,7 +29,7 @@ import datetime
 import time
 import os
 import msvcrt
-# from collections import deque
+# from collections import deque # used in older version for loading/saving the data
 import pickle
 
 title = ''
@@ -86,27 +41,24 @@ title += "#   #   #  #  #  #       #   #     #  #  #   \n"
 title += "#   #   #   ## #  ###    #   #      ## #  ###\n"
 
 def MacTrac():
+	"""
+	Main function. Loads saved data, then runs through the main loop
+	where the user can view, add, and remove macro nutrients
+	"""
 	clear_screen()
 	print(title)
-
-	print("Loading saved macros...\n")
-
-	now = time.clock()
+	
 	days = load_macros()
-	passed = time.clock() - now
-	print("Finished loading! Loading took {0} seconds\n".format(passed))
-
 	wait_sec(1)
-
-
-	view_day = datetime.date.today()
+	
+	view_day = datetime.date.today() # sets the first day to display
 	while True: #main loop
 		clear_screen()
 		print(title)
 
 		view_macro(days, view_day)
 
-		print("\nAdd / Remove macro here: (E) / (R)    Previous / Following day: (A) / (D)    Select by date: (S)    Exit: (Q)")
+		print("\nAdd / Remove macro here: (E) / (R)    Previous / Following day: (A) / (D)    Select by date: (S)    Save and Exit: (Q)")
 		choice = msvcrt.getwch() # get input from keyboard
 		if choice == 'e' or choice == 'E':
 			add_macro(days, view_day)
@@ -119,16 +71,46 @@ def MacTrac():
 		elif choice == 's' or choice == 'S':
 			view_day = pick_day()
 		elif choice == 'q' or choice == 'Q':
-			print("Saving macros...")
 			save_macros(days)
-			print("Finished. See ya! ")
 			wait_sec(2)
-			return
+			break
 		else:
 			print("Please enter the letters E, A, D, S, or Q")
 			wait_sec(1)
 
+
+def view_macro(days, date):
+	"""
+	Takes in a dictionary of DAYS, and a DATE to view
+	prints out the date and all of the saved macros for that day
+	"""
+	print(date.strftime("%A, %B %d, %Y")) # print the day, American style
+	if date == datetime.date.today():
+		print('Today')
+	elif date == datetime.date.today() - datetime.timedelta(1):
+		print('Yesterday')
+	elif date == datetime.date.today() + datetime.timedelta(1):
+		print('Tomorrow')
+	elif date < datetime.date.today():
+		print('{0} days ago'.format((datetime.date.today() - date).days))
+	elif date > datetime.date.today():
+		print('{0} days from now'.format((date - datetime.date.today()).days))
+
+	if date in days:
+		day = days[date]
+		print("\nTotal: {0} Calories, {1}g Protein\n".format(day.calories, day.protein))
+		for item in day.food:
+			print(item)
+	else:
+		print("\nTotal: 0 calories, 0g protein\n")
+
+
 def add_macro(days, date):
+	"""
+	Takes in a dictionary of DAYS, and a DATE to add macro to.
+	Prompts user for a Name and amount of Calories and Protein.
+	Adds the Day to DAYS if it's not there, and adds a Food to that Day
+	"""
 	clear_screen()
 	print(title)
 	view_macro(days, date)
@@ -141,17 +123,22 @@ def add_macro(days, date):
 		print("Calories and Protein must be numbers")
 		wait_sec(1)
 		return
+
 	if date not in days:
 		days[date] = Day(date)
 	days[date].add_food(name, cal, pro)
 
 
 def remove_macro(days, date):
-	if date in days:
+	"""
+	Takes in a dictionary of DAYS and a DATE to remove a macro from.
+	Prints all saved macros for that Day, user selects one to remove by element number
+	"""
+	if date in days and days[date].food:
 		while True:
 			clear_screen()
 			print(title)
-			for i, item in enumerate(days[date].food):
+			for i, item in enumerate(days[date].food): # prints the element number next to the food item
 				print(i, item)
 			cancel = len(days[date].food)
 			print(cancel, "Cancel")
@@ -174,26 +161,11 @@ def remove_macro(days, date):
 		wait_sec(1)
 
 
-def view_macro(days, date):
-	if date == datetime.date.today():
-		day_print = 'Today,     ' + str(date)
-	elif date == datetime.date.today() - datetime.timedelta(1):
-		day_print = 'Yesterday, ' + str(date)
-	else:
-		day_print = '           ' + str(date)
-	print(day_print)
-
-	if date in days:
-		day = days[date]
-		print("\nTotal:", day.calories, "calories, ", str(day.protein) + 'g', "protein\n")
-		for item in day.food:
-			print(item)
-	else:
-		print("\nTotal: 0 calories, 0g protein\n")
-
-
-
 def pick_day():
+	"""
+	Allows the user to select a Day by inputting the date, rather than by scrolling through days.
+	Prompts user for year, month, and day, returns appropriate Date
+	"""
 	while True:
 		clear_screen()
 		print(title)
@@ -212,23 +184,37 @@ def pick_day():
 
 
 def load_macros():
+	"""
+	Loads and returns a dictionary called days from MacFile.pickle, if the file exists
+	"""
+	print("Loading saved macros...\n")
+	now = time.clock()
 	try:
 		with open('MacFile.pickle', 'rb') as f:
 			days = pickle.load(f)
+		passed = time.clock() - now
+		print("Finished loading! Loading took {0} seconds\n".format(passed))
 		return days
 	except FileNotFoundError:
+		print("No macros saved yet, welcome to MacTrac!")
 		return {}
 
 
 def save_macros(days):
+	"""
+	Saves the dictionary DAYS, which contains all of the macro data, to MacFile.pickle
+	"""
+	print("Saving macros...")
 	with open ('MacFile.pickle', 'wb') as f:
 		pickle.dump(days, f)
+	print("Finished. See ya!")
 
 
 class Day:
 	"""
-	One day's worth of macro tracking. stores all the macros for that day.
+	One day's worth of macro tracking. Stores all the macros for that day.
 	has: a DATE; a list of food items/meals, FOOD; and two int trackers for CALORIES and PROTEIN
+	can: add_food to its FOOD list; remove_food from its FOOD list
 	"""
 
 	def __init__(self, date):
