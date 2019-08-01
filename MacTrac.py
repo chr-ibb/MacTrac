@@ -92,11 +92,11 @@ def MacTrac():
 	print("Loading saved macros...\n")
 
 	now = time.clock()
-	days, days_list = load_macros()
+	days = load_macros()
 	passed = time.clock() - now
 	print("Finished loading! Loading took {0} seconds\n".format(passed))
 
-	input("press enter ")
+	wait_sec(1)
 
 
 	view_day = datetime.date.today()
@@ -121,7 +121,8 @@ def MacTrac():
 		elif choice == 'q' or choice == 'Q':
 			print("Saving macros...")
 			save_macros(days)
-			input("Finished. See ya! ")
+			print("Finished. See ya! ")
+			wait_sec(2)
 			return
 		else:
 			print("Please enter the letters E, A, D, S, or Q")
@@ -132,9 +133,14 @@ def add_macro(days, date):
 	print(title)
 	view_macro(days, date)
 
-	name = input("Name of food item or meal: ")
-	cal = input("Calories: ")
-	pro = input("protein(g): ")
+	try:
+		name = input("\nName: ")
+		cal = int(input("Calories: "))
+		pro = int(input("Protein(g): "))
+	except ValueError:
+		print("Calories and Protein must be numbers")
+		wait_sec(1)
+		return
 	if date not in days:
 		days[date] = Day(date)
 	days[date].add_food(name, cal, pro)
@@ -147,19 +153,25 @@ def remove_macro(days, date):
 			print(title)
 			for i, item in enumerate(days[date].food):
 				print(i, item)
+			cancel = len(days[date].food)
+			print(cancel, "Cancel")
 
 			try:
 				to_remove = int(input("Remove which? Enter number: "))
+				if to_remove == cancel: break
 				days[date].remove_food(to_remove)
 				break
 			except (TypeError, ValueError) as e:
-				input('Enter an integer')
+				print('Enter an integer')
+				wait_sec(1)
 				continue
 			except IndexError:
-				input('number too large or too small')
+				print('Number too large or too small')
+				wait_sec(1)
 				continue
 	else:
-		input("nothing to remove...")
+		print("nothing to remove...")
+		wait_sec(1)
 
 
 def view_macro(days, date):
@@ -182,26 +194,30 @@ def view_macro(days, date):
 
 
 def pick_day():
-	clear_screen()
-	print(title)
+	while True:
+		clear_screen()
+		print(title)
 
-	year = int(input("year: "))
-	month = int(input("month: "))
-	day = int(input("day: "))
+		try:
+			year = int(input("year: "))
+			month = int(input("month: "))
+			day = int(input("day: "))
+		except ValueError:
+			continue
 
-	return datetime.date(year, month, day)
-
+		try:
+			return datetime.date(year, month, day)
+		except (ValueError, OverflowError) as e:
+			continue
 
 
 def load_macros():
 	try:
 		with open('MacFile.pickle', 'rb') as f:
 			days = pickle.load(f)
-		days_list = list(days.keys())
-		days_list.sort()
-		return days, days_list
+		return days
 	except FileNotFoundError:
-		return {}, []
+		return {}
 
 
 def save_macros(days):
@@ -228,6 +244,8 @@ class Day:
 
 
 	def remove_food(self, index):
+		self.calories -= self.food[index].calories
+		self.protein -= self.food[index].protein
 		self.food.pop(index)
 
 
