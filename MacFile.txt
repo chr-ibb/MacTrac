@@ -1,8 +1,17 @@
-2019 7 8 3
+2019 8 1 5
 Banana 105 1
-Cliff_bar 280 20
-Burger 500 25
+Cereal with Walnuts 600 15
+Chicken Tamales 600 18
+Chips 400 4
+Pasta 900 27
 
-2019 7 7 1
-Protein_shake 800 40
+2019 7 31 4
+Eggs and Toast 434 22
+Fruits 200 2
+Sandwich 800 28
+Stir Fry 1100 32
+
+2019 7 30 2
+Air 0 0
+Water 0 0
 
