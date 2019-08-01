@@ -26,6 +26,8 @@ Learned:
 	-adding or subtracting days using datetime.timedelta(n)
 	-checking time difference between dates, datetime.timedelta(n).days
 
+-how to sort lists, and how to use a sorted list in conjunction with a dictionary
+
 TODO
 make the ui look nicer
 maybe move all the printing outside of the classes
@@ -51,13 +53,23 @@ to Solve:
 	do I use orderedDict? do I just loop through until i find the next day in that direction? 
 	do i just look through all the days until i find the previous one, and if i dont find it, then just look
 	for the date previous that one? thats such a huge waste of time though...
+	I guess python sort of says to just try it and see if it's actually too slow..
+	nah because I'm literally gonna have to check every single item each time i move to a new day
+	ima use an ordered dict
+	scatch that. I'll use a regular dictionary like I already am, but then I'll have an additional list of just the
+	dates, which can be sorted. sick. 
+
+todo:
+	make a __repr__ and __str__ for Food items, so you can just straight up print them
+	redo the remove method, make it just reprint the day but with the element number next to each item
 """
 
 
 import datetime
 import time
 import os
-from collections import deque
+import msvcrt
+# from collections import deque
 import pickle
 
 title = ''
@@ -71,83 +83,110 @@ title += "#   #   #   ## #  ###    #   #      ## #  ###\n"
 def MacTrac():
 	clear_screen()
 	print(title)
+
 	print("Loading saved macros...\n")
+
 	now = time.clock()
-	days = load_macros()
+	days, days_list = load_macros()
 	passed = time.clock() - now
 	print("Finished loading! Loading took {0} seconds\n".format(passed))
+
 	input("press enter ")
-	
-	while True:
+
+
+	view_day = datetime.date.today()
+	while True: #main loop
 		clear_screen()
 		print(title)
-		choice = input("(A)dd Macro, (V)iew Macros, or (E)xit? (a/v/e): ")
-		if choice == 'a' or choice == 'A':
-			add_macro(days, pick_day())
-		elif choice == 'v' or choice == 'V':
-			view_macro(days)
-		elif choice == 'e' or choice == 'E':
+
+		view_macro(days, view_day)
+
+		print("\nAdd / Remove macro here: (E) / (R)    Previous / Following day: (A) / (D)    Select by date: (S)    Exit: (Q)")
+		choice = msvcrt.getwch() # get input from keyboard
+		if choice == 'e' or choice == 'E':
+			add_macro(days, view_day)
+		elif choice == 'r' or choice == 'R':
+			remove_macro(days, view_day)
+		elif choice == 'a' or choice == 'A':
+			view_day -= datetime.timedelta(1)
+		elif choice == 'd' or choice == 'D':
+			view_day += datetime.timedelta(1)
+		elif choice == 's' or choice == 'S':
+			view_day = pick_day()
+		elif choice == 'q' or choice == 'Q':
 			print("Saving macros...")
 			save_macros(days)
 			input("Finished. See ya! ")
 			return
 		else:
-			print("Please enter the letters (a) or (v) or (e)")
+			print("Please enter the letters E, A, D, S, or Q")
 			wait_sec(1)
 
 def add_macro(days, date):
-	if date not in days:
-		days[date] = Day(date)
-	days[date].add_food()
-
-
-def view_macro(days):
 	clear_screen()
 	print(title)
+	view_macro(days, date)
+
+	name = input("Name of food item or meal: ")
+	cal = input("Calories: ")
+	pro = input("protein(g): ")
+	if date not in days:
+		days[date] = Day(date)
+	days[date].add_food(name, cal, pro)
+
+
+def remove_macro(days, date):
 	if date in days:
-		print('     ', date)
-		day = days[date]
-		for item in day.food:
-			print(item.name + ':', item.calories, "calories,", str(item.protein) + 'g', "protein")
-		print("\nTotal:", day.calories, "calories, ", str(day.protein) + 'g', "protein\n")
-		input("Press Enter to return ")
+		days[date].remove_food()
 	else:
-		print("no macros saved for", date)
-		input("press enter ")
+		input("nothing to remove...")
+
+
+def view_macro(days, date):
+	if date == datetime.date.today():
+		day_print = 'Today,     ' + str(date)
+	elif date == datetime.date.today() - datetime.timedelta(1):
+		day_print = 'Yesterday, ' + str(date)
+	else:
+		day_print = '           ' + str(date)
+	print(day_print)
+
+	if date in days:
+		day = days[date]
+		print("\nTotal:", day.calories, "calories, ", str(day.protein) + 'g', "protein\n")
+		for item in day.food:
+			print(item.name + ',', item.calories, "calories,", str(item.protein) + 'g', "protein")
+	else:
+		print("\nTotal: 0 calories, 0g protein\n")
+
 
 
 def pick_day():
-	today = datetime.date.today()
-	while True:
-		clear_screen()
-		print(title)
-		print("(T)oday, (Y)esterday, (O)ther")
-		day = input("Which day? (t/y/o): ")
-		if day == 't' or day == 'T':
-			return today
-		elif day == 'y' or day == 'Y':
-			return today - datetime.timedelta(1)
-		elif day == 'o' or day == 'O':
-			year = int(input("year: "))
-			month = int(input("month: "))
-			day = int(input("day: "))
-			return datetime.date(year, month, day)
-		else:
-			print("Something went wrong, try again.")
+	clear_screen()
+	print(title)
+
+	year = int(input("year: "))
+	month = int(input("month: "))
+	day = int(input("day: "))
+
+	return datetime.date(year, month, day)
+
 
 
 def load_macros():
 	try:
 		with open('MacFile.pickle', 'rb') as f:
-			data = pickle.load(f)
-		return data
+			days = pickle.load(f)
+		days_list = list(days.keys())
+		days_list.sort()
+		return days, days_list
 	except FileNotFoundError:
-		return{}
+		return {}, []
 
 
-def save_macros(data):
+def save_macros(days):
 	with open ('MacFile.pickle', 'wb') as f:
-		pickle.dump(data, f)
+		pickle.dump(days, f)
 
 
 # def load_macros():
@@ -205,27 +244,17 @@ class Day:
 		self.calories = 0
 		self.protein = 0
 
-	def add_food(self):
-		while True:
-			clear_screen()
-			name = input("name of food item or meal: ")
-			if ' ' in name:
-				name = name.replace(' ', '_')
+	def add_food(self, name, cal, pro):
+		self.food.append(Food(name, cal, pro))
+		self.calories += int(cal)
+		self.protein += int(pro)
 
-			cal = input("Calories: ")
-			pro = input("protein(g): ")
-			correct = input(name + ', ' + cal + ' calories, ' + pro + 'g protein? (y/n): ')
-			if correct == 'y' or 'Y':
-				self.food.append(Food(name, cal, pro))
-				self.calories += int(cal)
-				self.protein += int(pro)
-				return
 
 	def remove_food(self):
 		while True:
 			clear_screen()
 			for i, item in enumerate(self.food):
-				print(i, item)
+				print(i, item.name)
 			to_remove = input("Remove which? Enter number: ")
 			assert type(to_remove) is int, "you must enter a number"
 			correct = input("Remove " + item.name + ", " + item.calories + '/' + item.protein + "? (y/n): ")
