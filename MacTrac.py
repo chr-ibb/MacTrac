@@ -62,6 +62,7 @@ to Solve:
 todo:
 	make a __repr__ and __str__ for Food items, so you can just straight up print them
 	redo the remove method, make it just reprint the day but with the element number next to each item
+	get rid of the ordreded list if you dont need it. right now you aren't using it
 """
 
 
@@ -155,7 +156,7 @@ def view_macro(days, date):
 		day = days[date]
 		print("\nTotal:", day.calories, "calories, ", str(day.protein) + 'g', "protein\n")
 		for item in day.food:
-			print(item.name + ',', item.calories, "calories,", str(item.protein) + 'g', "protein")
+			print(item)
 	else:
 		print("\nTotal: 0 calories, 0g protein\n")
 
@@ -272,6 +273,9 @@ class Food:
 		self.name = name
 		self.calories = calories
 		self.protein = protein
+
+	def __str__(self):
+		return '{0}: {1} Calories, {2}g Protein'.format(self.name, self.calories, self.protein)
 
 
 def clear_screen():
