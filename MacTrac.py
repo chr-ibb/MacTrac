@@ -26,7 +26,12 @@ Learned:
 	-adding or subtracting days using datetime.timedelta(n)
 	-checking time difference between dates, datetime.timedelta(n).days
 
--how to sort lists, and how to use a sorted list in conjunction with a dictionary
+-to sort lists, and how to use a sorted list in conjunction with a dictionary
+
+-to use continue and break in a loop
+
+-how to catch multiple errors in one except line, using a tuple and "as e" after
+
 
 TODO
 make the ui look nicer
@@ -60,7 +65,6 @@ to Solve:
 	dates, which can be sorted. sick. 
 
 todo:
-	make a __repr__ and __str__ for Food items, so you can just straight up print them
 	redo the remove method, make it just reprint the day but with the element number next to each item
 	get rid of the ordreded list if you dont need it. right now you aren't using it
 """
@@ -138,7 +142,22 @@ def add_macro(days, date):
 
 def remove_macro(days, date):
 	if date in days:
-		days[date].remove_food()
+		while True:
+			clear_screen()
+			print(title)
+			for i, item in enumerate(days[date].food):
+				print(i, item)
+
+			try:
+				to_remove = int(input("Remove which? Enter number: "))
+				days[date].remove_food(to_remove)
+				break
+			except (TypeError, ValueError) as e:
+				input('Enter an integer')
+				continue
+			except IndexError:
+				input('number too large or too small')
+				continue
 	else:
 		input("nothing to remove...")
 
@@ -190,6 +209,60 @@ def save_macros(days):
 		pickle.dump(days, f)
 
 
+class Day:
+	"""
+	One day's worth of macro tracking. stores all the macros for that day.
+	has: a DATE; a list of food items/meals, FOOD; and two int trackers for CALORIES and PROTEIN
+	"""
+
+	def __init__(self, date):
+		self.date = date
+		self.food = []
+		self.calories = 0
+		self.protein = 0
+
+	def add_food(self, name, cal, pro):
+		self.food.append(Food(name, cal, pro))
+		self.calories += int(cal)
+		self.protein += int(pro)
+
+
+	def remove_food(self, index):
+		self.food.pop(index)
+
+
+class Food:
+	"""
+	one food item or meal
+	has: a NAME; number of CALORIES, number of PROTEIN
+	"""
+
+	def __init__(self, name, calories, protein):
+		self.name = name
+		self.calories = calories
+		self.protein = protein
+
+	def __str__(self):
+		return '{0}: {1} Calories, {2}g Protein'.format(self.name, self.calories, self.protein)
+
+
+def clear_screen():
+	"""
+	clears the command line screen
+	"""
+	os.system('cls')
+
+
+def wait_sec(s):
+	"""
+	pauses command line for S seconds
+	"""
+	time.sleep(s)
+
+
+MacTrac()
+
+
 # def load_macros():
 # 	days = {}
 # 	try:
@@ -231,65 +304,3 @@ def save_macros(days):
 # 		file.write('\n')
 
 # 	file.close()
-
-
-class Day:
-	"""
-	One day's worth of macro tracking. stores all the macros for that day.
-	has: a DATE; a list of food items/meals, FOOD; and two int trackers for CALORIES and PROTEIN
-	"""
-
-	def __init__(self, date):
-		self.date = date
-		self.food = []
-		self.calories = 0
-		self.protein = 0
-
-	def add_food(self, name, cal, pro):
-		self.food.append(Food(name, cal, pro))
-		self.calories += int(cal)
-		self.protein += int(pro)
-
-
-	def remove_food(self):
-		while True:
-			clear_screen()
-			for i, item in enumerate(self.food):
-				print(i, item.name)
-			to_remove = input("Remove which? Enter number: ")
-			assert type(to_remove) is int, "you must enter a number"
-			correct = input("Remove " + item.name + ", " + item.calories + '/' + item.protein + "? (y/n): ")
-			if correct == 'y' or 'Y':
-				return self.food.pop(to_remove)
-
-
-class Food:
-	"""
-	one food item or meal
-	has: a NAME; number of CALORIES, number of PROTEIN
-	"""
-
-	def __init__(self, name, calories, protein):
-		self.name = name
-		self.calories = calories
-		self.protein = protein
-
-	def __str__(self):
-		return '{0}: {1} Calories, {2}g Protein'.format(self.name, self.calories, self.protein)
-
-
-def clear_screen():
-	"""
-	clears the command line screen
-	"""
-	os.system('cls')
-
-
-def wait_sec(s):
-	"""
-	pauses command line for S seconds
-	"""
-	time.sleep(s)
-
-
-MacTrac()
