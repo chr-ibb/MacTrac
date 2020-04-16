@@ -188,11 +188,11 @@ def load_macros():
 	Loads and returns a dictionary called days from MacFile.pickle, if the file exists
 	"""
 	print("Loading saved macros...\n")
-	now = time.clock()
+	now = time.perf_counter()
 	try:
 		with open('MacFile.pickle', 'rb') as f:
 			days = pickle.load(f)
-		passed = time.clock() - now
+		passed = time.perf_counter() - now
 		print("Finished loading! Loading took {0} seconds\n".format(passed))
 		return days
 	except FileNotFoundError:
